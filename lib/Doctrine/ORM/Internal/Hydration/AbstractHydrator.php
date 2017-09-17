@@ -280,6 +280,7 @@ abstract class AbstractHydrator
 
                     $rowData['newObjects'][$objIndex]['class']           = $cacheKeyInfo['class'];
                     $rowData['newObjects'][$objIndex]['args'][$argIndex] = $value;
+
                     break;
 
                 case (isset($cacheKeyInfo['isScalar'])):
@@ -323,6 +324,29 @@ abstract class AbstractHydrator
                     break;
             }
         }
+
+        foreach ($this->_rsm->nestedNewObjectArguments as $objIndex => ['ownerIndex' => $ownerIndex, 'argIndex' => $argIndex]) {
+            $newObject = $rowData['newObjects'][$objIndex];
+            unset($rowData['newObjects'][$objIndex]);
+
+            $class  = $newObject['class'];
+            $args   = $newObject['args'];
+            $obj    = $class->newInstanceArgs($args);
+
+            $rowData['newObjects'][$ownerIndex]['args'][$argIndex] = $obj;
+        }
+
+
+        if (isset($rowData['newObjects'])) {
+            foreach ($rowData['newObjects'] as $objIndex => $newObject) {
+                $class  = $newObject['class'];
+                $args   = $newObject['args'];
+                $obj    = $class->newInstanceArgs($args);
+
+                $rowData['newObjects'][$objIndex]['obj'] = $obj;
+            }
+        }
+
 
         return $rowData;
     }
